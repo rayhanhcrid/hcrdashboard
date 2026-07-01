@@ -1,0 +1,745 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HCR.ID — Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#101826;
+    --ink-soft:#3B4657;
+    --paper:#F4F6FA;
+    --paper-card:#FFFFFF;
+    --line:#E1E6EE;
+    --line-strong:#CBD3E0;
+    --blue:#1467B5;
+    --blue-dark:#0B4680;
+    --blue-tint:#E4EEF9;
+    --orange:#F4A21F;
+    --orange-dark:#B8620B;
+    --orange-tint:#FDEFD9;
+    --rust:#D3540F;
+    --rust-dark:#8C3306;
+    --rust-tint:#FBE3D6;
+    --muted:#6B7385;
+    --radius:14px;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--paper);
+    color:var(--ink);
+    font-family:'Inter',sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  ::selection{background:var(--orange-tint);}
+  .app{display:flex;min-height:100vh;}
+
+  /* ---------- SIDEBAR ---------- */
+  .sidebar{
+    width:250px;
+    flex-shrink:0;
+    background:var(--ink);
+    color:#E7EAF1;
+    display:flex;
+    flex-direction:column;
+    padding:28px 20px;
+    position:sticky;
+    top:0;
+    height:100vh;
+  }
+  .logo-row{display:flex;align-items:center;gap:10px;margin-bottom:2px;}
+  .logo-mark{
+    width:26px;height:26px;flex-shrink:0;
+    background:linear-gradient(160deg, var(--orange) 0%, var(--rust) 100%);
+    border-radius:6px;
+    position:relative;
+  }
+  .logo-mark::after{
+    content:"";
+    position:absolute;
+    left:11px;top:0;bottom:0;width:4px;
+    background:var(--blue);
+  }
+  .logo-mark::before{
+    content:"";
+    position:absolute;
+    left:0;right:0;top:11px;height:4px;
+    background:var(--blue);
+  }
+  .logo-text{font-family:'Space Grotesk',sans-serif;font-size:19px;font-weight:700;letter-spacing:-0.02em;}
+  .logo-sub{font-size:10.5px;color:#8C93A3;letter-spacing:.07em;text-transform:uppercase;margin:2px 0 38px 36px;}
+
+  .nav-label{font-size:11px;color:#6B7385;text-transform:uppercase;letter-spacing:.08em;margin:0 0 12px 4px;font-weight:500;}
+  .nav-item{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    padding:10px 12px;
+    border-radius:10px;
+    font-size:14px;
+    font-weight:500;
+    color:#B7BDCB;
+    cursor:pointer;
+    margin-bottom:4px;
+    border:1px solid transparent;
+    transition:background .15s ease, color .15s ease;
+  }
+  .nav-item .swatch{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+  .nav-item:hover{background:rgba(255,255,255,.06);color:#fff;}
+  .nav-item.active{background:rgba(255,255,255,.09);color:#fff;border-color:rgba(255,255,255,.1);}
+  .nav-item .count{margin-left:auto;font-size:11px;font-family:'JetBrains Mono',monospace;color:#6B7385;}
+  .nav-item.active .count{color:#E7EAF1;}
+
+  .sidebar-foot{
+    margin-top:auto;
+    padding-top:20px;
+    border-top:1px solid rgba(255,255,255,.09);
+    font-size:12px;
+    color:#6B7385;
+    line-height:1.6;
+  }
+  .sidebar-foot b{color:#B7BDCB;font-weight:500;}
+
+  /* ---------- MAIN ---------- */
+  .main{flex:1;min-width:0;padding:32px 40px 60px;}
+  .topbar{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:32px;gap:20px;}
+  .topbar h1{
+    font-family:'Space Grotesk',sans-serif;
+    font-size:26px;
+    font-weight:600;
+    margin:0 0 6px;
+    letter-spacing:-0.01em;
+  }
+  .topbar p{margin:0;color:var(--ink-soft);font-size:14px;max-width:520px;}
+  .today{
+    text-align:right;
+    font-size:12px;
+    color:var(--muted);
+    font-family:'JetBrains Mono',monospace;
+    padding-top:4px;
+  }
+
+  /* stat strip */
+  .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:32px;}
+  .stat-card{
+    background:var(--paper-card);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    padding:18px 20px;
+  }
+  .stat-card .label{font-size:12px;color:var(--muted);margin-bottom:8px;}
+  .stat-card .value{font-family:'Space Grotesk',sans-serif;font-size:26px;font-weight:600;}
+  .stat-card .delta{font-size:12px;margin-top:6px;font-weight:500;color:var(--blue-dark);}
+
+  /* section */
+  .section{margin-bottom:36px;}
+  .section-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
+  .section-head h2{font-family:'Space Grotesk',sans-serif;font-size:16px;font-weight:600;margin:0;}
+  .add-btn{
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    font-size:12.5px;
+    font-weight:500;
+    color:var(--blue-dark);
+    background:var(--blue-tint);
+    border:none;
+    padding:7px 12px;
+    border-radius:8px;
+    cursor:pointer;
+  }
+  .add-btn:hover{background:#D5E4F5;}
+
+  /* kanban */
+  .board{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;}
+  .col{background:var(--paper-card);border:1px solid var(--line);border-radius:var(--radius);padding:14px;}
+  .col-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;padding:0 4px;}
+  .col-head span.title{font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-soft);}
+  .col-head span.n{font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--muted);}
+  .task{
+    border:1px solid var(--line);
+    border-radius:10px;
+    padding:12px 13px;
+    margin-bottom:10px;
+    background:#FBFCFE;
+    position:relative;
+  }
+  .task:last-child{margin-bottom:0;}
+  .task .t-title{font-size:13.5px;font-weight:500;line-height:1.4;margin-bottom:8px;padding-right:18px;}
+  .task .t-meta{display:flex;align-items:center;justify-content:space-between;gap:8px;}
+  .badge{
+    font-size:10.5px;
+    font-weight:600;
+    padding:3px 8px;
+    border-radius:20px;
+    text-transform:uppercase;
+    letter-spacing:.03em;
+  }
+  .badge.pi{background:var(--orange-tint);color:var(--orange-dark);}
+  .badge.dc{background:var(--blue-tint);color:var(--blue-dark);}
+  .badge.bm{background:var(--rust-tint);color:var(--rust-dark);}
+  .due{font-size:11px;color:var(--muted);font-family:'JetBrains Mono',monospace;}
+  .remove-x{
+    position:absolute;top:10px;right:10px;
+    width:16px;height:16px;
+    border:none;background:none;
+    color:var(--muted);cursor:pointer;
+    font-size:14px;line-height:1;
+    padding:0;
+  }
+  .remove-x:hover{color:var(--rust-dark);}
+  .empty-state{
+    text-align:center;
+    color:var(--muted);
+    font-size:12.5px;
+    padding:22px 8px;
+    border:1px dashed var(--line-strong);
+    border-radius:10px;
+  }
+
+  /* client pipeline */
+  .table-wrap{background:var(--paper-card);border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;}
+  table{width:100%;border-collapse:collapse;font-size:13px;}
+  thead th{
+    text-align:left;
+    font-size:11px;
+    text-transform:uppercase;
+    letter-spacing:.05em;
+    color:var(--muted);
+    font-weight:600;
+    padding:12px 16px;
+    border-bottom:1px solid var(--line);
+    background:#F7F9FC;
+  }
+  tbody td{padding:13px 16px;border-bottom:1px solid var(--line);vertical-align:middle;}
+  tbody tr:last-child td{border-bottom:none;}
+  tbody tr:hover{background:#F7F9FC;}
+  .client-name{font-weight:500;}
+  .stage-pill{font-size:11px;font-weight:600;padding:4px 10px;border-radius:20px;display:inline-block;}
+  .stage-lead{background:#EDEFF4;color:#4A5265;}
+  .stage-proposal{background:var(--orange-tint);color:var(--orange-dark);}
+  .stage-nego{background:var(--blue-tint);color:var(--blue-dark);}
+  .stage-won{background:#DFF3E6;color:#1B7A42;}
+  .stage-lost{background:var(--rust-tint);color:var(--rust-dark);}
+  .value-cell{font-family:'JetBrains Mono',monospace;font-size:12.5px;color:var(--ink-soft);}
+  .pic-cell{color:var(--muted);font-size:12.5px;}
+  .row-remove{
+    border:none;background:none;color:var(--muted);cursor:pointer;font-size:13px;
+  }
+  .row-remove:hover{color:var(--rust-dark);}
+
+  /* calendar timeline */
+  .timeline{background:var(--paper-card);border:1px solid var(--line);border-radius:var(--radius);padding:18px 20px;}
+  .tl-row{display:flex;align-items:center;gap:14px;padding:10px 0;border-bottom:1px dashed var(--line);}
+  .tl-row:last-child{border-bottom:none;}
+  .tl-date{
+    width:64px;
+    flex-shrink:0;
+    text-align:center;
+    font-family:'JetBrains Mono',monospace;
+  }
+  .tl-date .dow{display:block;font-size:10px;color:var(--muted);text-transform:uppercase;}
+  .tl-date .dom{display:block;font-size:17px;font-weight:600;}
+  .tl-bar{width:3px;align-self:stretch;border-radius:2px;flex-shrink:0;}
+  .tl-bar.dc{background:var(--blue);}
+  .tl-bar.pi{background:var(--orange);}
+  .tl-bar.bm{background:var(--rust);}
+  .tl-body{flex:1;min-width:0;}
+  .tl-body .tt{font-size:13.5px;font-weight:500;margin-bottom:2px;}
+  .tl-body .ts{font-size:12px;color:var(--muted);}
+
+  /* modal */
+  .overlay{
+    display:none;
+    position:fixed;inset:0;
+    background:rgba(16,24,38,.45);
+    align-items:center;justify-content:center;
+    z-index:50;
+  }
+  .overlay.open{display:flex;}
+  .modal{
+    background:#fff;
+    border-radius:16px;
+    width:380px;
+    max-width:90vw;
+    padding:24px;
+  }
+  .modal h3{font-family:'Space Grotesk',sans-serif;font-size:16px;font-weight:600;margin:0 0 18px;}
+  .field{margin-bottom:14px;}
+  .field label{display:block;font-size:12px;color:var(--muted);margin-bottom:6px;font-weight:500;}
+  .field input, .field select{
+    width:100%;
+    padding:9px 11px;
+    border:1px solid var(--line-strong);
+    border-radius:8px;
+    font-size:13.5px;
+    font-family:'Inter',sans-serif;
+    background:#fff;
+    color:var(--ink);
+  }
+  .field input:focus, .field select:focus{outline:2px solid var(--blue-tint);border-color:var(--blue);}
+  .modal-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:20px;}
+  .btn{
+    padding:9px 16px;
+    border-radius:8px;
+    font-size:13px;
+    font-weight:500;
+    cursor:pointer;
+    border:1px solid var(--line-strong);
+    background:#fff;
+    color:var(--ink-soft);
+  }
+  .btn.primary{
+    background:var(--blue);
+    border-color:var(--blue);
+    color:#fff;
+  }
+  .btn.primary:hover{background:var(--blue-dark);}
+  .btn:hover{background:#F4F6FA;}
+
+  @media (max-width:980px){
+    .stats{grid-template-columns:repeat(2,1fr);}
+    .board{grid-template-columns:1fr;}
+    .sidebar{position:relative;height:auto;width:100%;}
+    .app{flex-direction:column;}
+    .main{padding:24px;}
+  }
+</style>
+</head>
+<body>
+
+<div class="app">
+  <aside class="sidebar">
+    <div class="logo-row">
+      <div class="logo-mark"></div>
+      <div class="logo-text">HCR.ID</div>
+    </div>
+    <div class="logo-sub">Ops dashboard</div>
+
+    <p class="nav-label">Divisi</p>
+    <div class="nav-item active" data-div="all">
+      <span class="swatch" style="background:#6B7385"></span>Semua divisi
+      <span class="count" id="count-all">0</span>
+    </div>
+    <div class="nav-item" data-div="dc">
+      <span class="swatch" style="background:var(--blue)"></span>Digital Creative
+      <span class="count" id="count-dc">0</span>
+    </div>
+    <div class="nav-item" data-div="pi">
+      <span class="swatch" style="background:var(--orange)"></span>Product Innovation
+      <span class="count" id="count-pi">0</span>
+    </div>
+    <div class="nav-item" data-div="bm">
+      <span class="swatch" style="background:var(--rust)"></span>Business Manager
+      <span class="count" id="count-bm">0</span>
+    </div>
+
+    <div class="sidebar-foot">
+      Dashboard ini masih kosong. Tambahkan task, client, dan jadwal lewat tombol tambah di tiap bagian.
+    </div>
+  </aside>
+
+  <main class="main">
+    <div class="topbar">
+      <div>
+        <h1 id="page-title">Ringkasan semua divisi</h1>
+        <p id="page-desc">Progress task, pipeline client, dan jadwal dalam satu layar.</p>
+      </div>
+      <div class="today" id="today-date"></div>
+    </div>
+
+    <div class="stats" id="stats"></div>
+
+    <div class="section">
+      <div class="section-head">
+        <h2>Task board</h2>
+        <button class="add-btn" onclick="openTaskModal()">+ Tambah task</button>
+      </div>
+      <div class="board" id="board"></div>
+    </div>
+
+    <div class="section">
+      <div class="section-head">
+        <h2>Client pipeline</h2>
+        <button class="add-btn" onclick="openClientModal()">+ Tambah client</button>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Client</th>
+              <th>Stage</th>
+              <th>PIC</th>
+              <th>Divisi terkait</th>
+              <th style="text-align:right">Estimasi nilai</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="client-body"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-head">
+        <h2>Jadwal</h2>
+        <button class="add-btn" onclick="openScheduleModal()">+ Tambah jadwal</button>
+      </div>
+      <div class="timeline" id="timeline"></div>
+    </div>
+  </main>
+</div>
+
+<!-- MODAL TASK -->
+<div class="overlay" id="modal-task">
+  <div class="modal">
+    <h3>Tambah task</h3>
+    <div class="field">
+      <label>Nama task</label>
+      <input type="text" id="task-title" placeholder="Contoh: bikin proposal training client A">
+    </div>
+    <div class="field">
+      <label>Divisi</label>
+      <select id="task-div">
+        <option value="dc">Digital Creative</option>
+        <option value="pi">Product Innovation</option>
+        <option value="bm">Business Manager</option>
+      </select>
+    </div>
+    <div class="field">
+      <label>Status</label>
+      <select id="task-status">
+        <option value="todo">Belum mulai</option>
+        <option value="progress">Berjalan</option>
+        <option value="review">Review</option>
+        <option value="done">Selesai</option>
+      </select>
+    </div>
+    <div class="field">
+      <label>Tenggat (opsional)</label>
+      <input type="text" id="task-due" placeholder="Contoh: 5 Jul">
+    </div>
+    <div class="modal-actions">
+      <button class="btn" onclick="closeModal('modal-task')">Batal</button>
+      <button class="btn primary" onclick="saveTask()">Simpan task</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL CLIENT -->
+<div class="overlay" id="modal-client">
+  <div class="modal">
+    <h3>Tambah client</h3>
+    <div class="field">
+      <label>Nama client</label>
+      <input type="text" id="client-name" placeholder="Contoh: PT Nusantara Jaya">
+    </div>
+    <div class="field">
+      <label>Stage</label>
+      <select id="client-stage">
+        <option value="lead">Lead</option>
+        <option value="proposal">Proposal</option>
+        <option value="nego">Negosiasi</option>
+        <option value="won">Deal</option>
+        <option value="lost">Batal</option>
+      </select>
+    </div>
+    <div class="field">
+      <label>PIC</label>
+      <input type="text" id="client-pic" placeholder="Nama PIC">
+    </div>
+    <div class="field">
+      <label>Divisi terkait</label>
+      <select id="client-div">
+        <option value="bm">Business Manager</option>
+        <option value="pi">Product Innovation</option>
+        <option value="dc">Digital Creative</option>
+      </select>
+    </div>
+    <div class="field">
+      <label>Estimasi nilai (opsional)</label>
+      <input type="text" id="client-value" placeholder="Contoh: Rp 50.000.000">
+    </div>
+    <div class="modal-actions">
+      <button class="btn" onclick="closeModal('modal-client')">Batal</button>
+      <button class="btn primary" onclick="saveClient()">Simpan client</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL SCHEDULE -->
+<div class="overlay" id="modal-schedule">
+  <div class="modal">
+    <h3>Tambah jadwal</h3>
+    <div class="field">
+      <label>Judul kegiatan</label>
+      <input type="text" id="sch-title" placeholder="Contoh: meeting kickoff client baru">
+    </div>
+    <div class="field">
+      <label>Hari</label>
+      <input type="text" id="sch-dow" placeholder="Contoh: Sen">
+    </div>
+    <div class="field">
+      <label>Tanggal</label>
+      <input type="text" id="sch-dom" placeholder="Contoh: 06">
+    </div>
+    <div class="field">
+      <label>Divisi</label>
+      <select id="sch-div">
+        <option value="dc">Digital Creative</option>
+        <option value="pi">Product Innovation</option>
+        <option value="bm">Business Manager</option>
+      </select>
+    </div>
+    <div class="field">
+      <label>Keterangan (opsional)</label>
+      <input type="text" id="sch-sub" placeholder="Contoh: jam 10.00, online">
+    </div>
+    <div class="modal-actions">
+      <button class="btn" onclick="closeModal('modal-schedule')">Batal</button>
+      <button class="btn primary" onclick="saveSchedule()">Simpan jadwal</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const DIV = {
+  dc:{ label:"Digital Creative", badge:"dc" },
+  pi:{ label:"Product Innovation", badge:"pi" },
+  bm:{ label:"Business Manager", badge:"bm" }
+};
+
+let tasks = [];
+let clients = [];
+let schedule = [];
+
+const stageMeta = {
+  lead:{label:"Lead", cls:"stage-lead"},
+  proposal:{label:"Proposal", cls:"stage-proposal"},
+  nego:{label:"Negosiasi", cls:"stage-nego"},
+  won:{label:"Deal", cls:"stage-won"},
+  lost:{label:"Batal", cls:"stage-lost"}
+};
+
+let currentDiv = "all";
+
+function renderCounts(){
+  document.getElementById("count-all").textContent = tasks.length;
+  document.getElementById("count-dc").textContent = tasks.filter(t=>t.div==="dc").length;
+  document.getElementById("count-pi").textContent = tasks.filter(t=>t.div==="pi").length;
+  document.getElementById("count-bm").textContent = tasks.filter(t=>t.div==="bm").length;
+}
+
+function renderStats(){
+  const filteredTasks = currentDiv==="all" ? tasks : tasks.filter(t=>t.div===currentDiv);
+  const total = filteredTasks.length;
+  const done = filteredTasks.filter(t=>t.status==="done").length;
+  const progress = filteredTasks.filter(t=>t.status==="progress").length;
+  const filteredClients = currentDiv==="all" ? clients : clients.filter(c=>c.div===currentDiv);
+  const activeDeals = filteredClients.filter(c=>c.stage==="proposal"||c.stage==="nego").length;
+  const filteredSchedule = currentDiv==="all" ? schedule : schedule.filter(s=>s.div===currentDiv);
+
+  const cards = [
+    { label:"Total task aktif", value: total, delta: progress + " sedang berjalan" },
+    { label:"Task selesai", value: done, delta: "dari " + total + " task" },
+    { label:"Client pipeline aktif", value: activeDeals, delta: "proposal dan negosiasi" },
+    { label:"Jadwal tercatat", value: filteredSchedule.length, delta: "training, konten, meeting" }
+  ];
+  document.getElementById("stats").innerHTML = cards.map(c=>`
+    <div class="stat-card">
+      <div class="label">${c.label}</div>
+      <div class="value">${c.value}</div>
+      <div class="delta">${c.delta}</div>
+    </div>
+  `).join("");
+}
+
+function renderBoard(){
+  const filtered = currentDiv==="all" ? tasks : tasks.filter(t=>t.div===currentDiv);
+  const cols = [
+    { key:"todo", title:"Belum mulai" },
+    { key:"progress", title:"Berjalan" },
+    { key:"review", title:"Review" }
+  ];
+  document.getElementById("board").innerHTML = cols.map(col=>{
+    const items = filtered.filter(t=>t.status===col.key);
+    return `
+      <div class="col">
+        <div class="col-head">
+          <span class="title">${col.title}</span>
+          <span class="n">${items.length}</span>
+        </div>
+        ${items.map(t=>`
+          <div class="task">
+            <button class="remove-x" onclick="removeTask('${t.id}')" aria-label="Hapus task">×</button>
+            <div class="t-title">${t.title}</div>
+            <div class="t-meta">
+              <span class="badge ${DIV[t.div].badge}">${DIV[t.div].label}</span>
+              <span class="due">${t.due || ""}</span>
+            </div>
+          </div>
+        `).join("") || `<div class="empty-state">Belum ada task</div>`}
+      </div>
+    `;
+  }).join("");
+}
+
+function renderClients(){
+  const filtered = currentDiv==="all" ? clients : clients.filter(c=>c.div===currentDiv);
+  if(filtered.length===0){
+    document.getElementById("client-body").innerHTML = `<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:28px;">Belum ada client tercatat</td></tr>`;
+    return;
+  }
+  document.getElementById("client-body").innerHTML = filtered.map(c=>`
+    <tr>
+      <td class="client-name">${c.name}</td>
+      <td><span class="stage-pill ${stageMeta[c.stage].cls}">${stageMeta[c.stage].label}</span></td>
+      <td class="pic-cell">${c.pic || "-"}</td>
+      <td><span class="badge ${DIV[c.div].badge}">${DIV[c.div].label}</span></td>
+      <td class="value-cell" style="text-align:right">${c.value || "-"}</td>
+      <td style="text-align:right"><button class="row-remove" onclick="removeClient('${c.id}')" aria-label="Hapus client">×</button></td>
+    </tr>
+  `).join("");
+}
+
+function renderTimeline(){
+  const filtered = currentDiv==="all" ? schedule : schedule.filter(s=>s.div===currentDiv);
+  if(filtered.length===0){
+    document.getElementById("timeline").innerHTML = `<div class="empty-state">Belum ada jadwal tercatat</div>`;
+    return;
+  }
+  document.getElementById("timeline").innerHTML = filtered.map(s=>`
+    <div class="tl-row">
+      <div class="tl-date"><span class="dow">${s.dow}</span><span class="dom">${s.dom}</span></div>
+      <div class="tl-bar ${s.div}"></div>
+      <div class="tl-body">
+        <div class="tt">${s.title}</div>
+        <div class="ts">${s.sub || ""}</div>
+      </div>
+      <span class="badge ${DIV[s.div].badge}">${DIV[s.div].label}</span>
+      <button class="row-remove" onclick="removeSchedule('${s.id}')" aria-label="Hapus jadwal">×</button>
+    </div>
+  `).join("");
+}
+
+function renderAll(){
+  renderCounts();
+  renderStats();
+  renderBoard();
+  renderClients();
+  renderTimeline();
+}
+
+function uid(){
+  return Math.random().toString(36).slice(2,9);
+}
+
+function openModal(id){ document.getElementById(id).classList.add("open"); }
+function closeModal(id){ document.getElementById(id).classList.remove("open"); }
+function openTaskModal(){ openModal("modal-task"); }
+function openClientModal(){ openModal("modal-client"); }
+function openScheduleModal(){ openModal("modal-schedule"); }
+
+function saveTask(){
+  const title = document.getElementById("task-title").value.trim();
+  if(!title) return;
+  tasks.push({
+    id: uid(),
+    title,
+    div: document.getElementById("task-div").value,
+    status: document.getElementById("task-status").value,
+    due: document.getElementById("task-due").value.trim()
+  });
+  document.getElementById("task-title").value = "";
+  document.getElementById("task-due").value = "";
+  closeModal("modal-task");
+  renderAll();
+}
+
+function removeTask(id){
+  tasks = tasks.filter(t=>t.id!==id);
+  renderAll();
+}
+
+function saveClient(){
+  const name = document.getElementById("client-name").value.trim();
+  if(!name) return;
+  clients.push({
+    id: uid(),
+    name,
+    stage: document.getElementById("client-stage").value,
+    pic: document.getElementById("client-pic").value.trim(),
+    div: document.getElementById("client-div").value,
+    value: document.getElementById("client-value").value.trim()
+  });
+  document.getElementById("client-name").value = "";
+  document.getElementById("client-pic").value = "";
+  document.getElementById("client-value").value = "";
+  closeModal("modal-client");
+  renderAll();
+}
+
+function removeClient(id){
+  clients = clients.filter(c=>c.id!==id);
+  renderAll();
+}
+
+function saveSchedule(){
+  const title = document.getElementById("sch-title").value.trim();
+  if(!title) return;
+  schedule.push({
+    id: uid(),
+    title,
+    dow: document.getElementById("sch-dow").value.trim() || "-",
+    dom: document.getElementById("sch-dom").value.trim() || "-",
+    div: document.getElementById("sch-div").value,
+    sub: document.getElementById("sch-sub").value.trim()
+  });
+  document.getElementById("sch-title").value = "";
+  document.getElementById("sch-dow").value = "";
+  document.getElementById("sch-dom").value = "";
+  document.getElementById("sch-sub").value = "";
+  closeModal("modal-schedule");
+  renderAll();
+}
+
+function removeSchedule(id){
+  schedule = schedule.filter(s=>s.id!==id);
+  renderAll();
+}
+
+document.querySelectorAll(".overlay").forEach(ov=>{
+  ov.addEventListener("click", (e)=>{
+    if(e.target===ov) ov.classList.remove("open");
+  });
+});
+
+document.querySelectorAll(".nav-item").forEach(item=>{
+  item.addEventListener("click", ()=>{
+    document.querySelectorAll(".nav-item").forEach(i=>i.classList.remove("active"));
+    item.classList.add("active");
+    currentDiv = item.dataset.div;
+    const titleMap = {
+      all:["Ringkasan semua divisi","Progress task, pipeline client, dan jadwal dalam satu layar."],
+      dc:["Digital Creative","Konten sosial media dan digital product yang sedang dikerjakan."],
+      pi:["Product Innovation Development","Proposal dan modul training yang sedang disusun untuk client."],
+      bm:["Business Manager","Pipeline client dan jadwal outreach dari tim sales."]
+    };
+    document.getElementById("page-title").textContent = titleMap[currentDiv][0];
+    document.getElementById("page-desc").textContent = titleMap[currentDiv][1];
+    renderAll();
+  });
+});
+
+const todayEl = document.getElementById("today-date");
+const today = new Date();
+todayEl.textContent = today.toLocaleDateString("id-ID", { weekday:"long", day:"numeric", month:"long", year:"numeric" });
+
+renderAll();
+</script>
+
+</body>
+</html>
